@@ -1,0 +1,176 @@
+import React from 'react';
+import { Card, Tag, Button, Rate, Tooltip, Space } from 'antd';
+import { HeartOutlined, HeartFilled, EnvironmentOutlined, ThunderboltOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { toggleWishlist } from '../../store/slices/equipmentSlice';
+import { formatCurrency } from '../../utils/formatters';
+
+export default function ProductCard({ equipment }) {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { wishlist } = useSelector((state) => state.equipment);
+
+  const isWishlisted = wishlist.includes(equipment.id);
+
+  return (
+    <Card
+      hoverable
+      className="hover-lift"
+      style={{
+        borderRadius: 16,
+        overflow: 'hidden',
+        border: '1px solid #e2e8f0',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+      }}
+      bodyStyle={{ padding: 18, display: 'flex', flexDirection: 'column', flex: 1 }}
+      cover={
+        <div style={{ position: 'relative', height: 210, overflow: 'hidden', background: '#f1f5f9' }}>
+          <img
+            alt={equipment.name}
+            src={equipment.images[0]}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }}
+            onError={(e) => {
+              e.target.src = 'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?auto=format&fit=crop&w=600&q=80';
+            }}
+          />
+          {/* Wishlist Button */}
+          <Button
+            shape="circle"
+            icon={isWishlisted ? <HeartFilled style={{ color: '#EF4444' }} /> : <HeartOutlined style={{ color: '#64748b' }} />}
+            onClick={(e) => {
+              e.stopPropagation();
+              dispatch(toggleWishlist(equipment.id));
+            }}
+            style={{
+              position: 'absolute',
+              top: 12,
+              right: 12,
+              background: 'rgba(255, 255, 255, 0.9)',
+              border: 'none',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            }}
+          />
+
+          {/* Badges */}
+          <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <Tag color="#2E7D32" style={{ fontWeight: 700, borderRadius: 6, margin: 0, padding: '2px 8px' }}>
+              {equipment.type}
+            </Tag>
+            {equipment.featured && (
+              <Tag color="#FFC107" style={{ fontWeight: 700, borderRadius: 6, margin: 0, color: '#0f172a' }}>
+                ⚡ Featured
+              </Tag>
+            )}
+          </div>
+
+          <div style={{
+            position: 'absolute',
+            bottom: 8,
+            left: 12,
+            background: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(4px)',
+            color: 'white',
+            padding: '2px 8px',
+            borderRadius: 6,
+            fontSize: 12,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4
+          }}>
+            <EnvironmentOutlined /> {equipment.location}
+          </div>
+        </div>
+      }
+    >
+      {/* Category Tag */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: '#4CAF50', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          {equipment.category}
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Rate disabled defaultValue={equipment.rating} allowHalf style={{ fontSize: 12 }} />
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>{equipment.rating}</span>
+          <span style={{ fontSize: 11, color: '#94a3b8' }}>({equipment.reviewCount})</span>
+        </div>
+      </div>
+
+      {/* Equipment Name */}
+      <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 8, lineHeight: 1.3 }}>
+        {equipment.name}
+      </h3>
+
+      {/* Specs Highlights */}
+      <div style={{
+        background: '#f8fafc',
+        padding: '8px 10px',
+        borderRadius: 8,
+        fontSize: 12,
+        color: '#475569',
+        marginBottom: 14,
+        display: 'flex',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 6
+      }}>
+        {Object.entries(equipment.specs).slice(0, 2).map(([key, val]) => (
+          <span key={key} style={{ textTransform: 'capitalize' }}>
+            <strong style={{ color: '#0f172a' }}>{key.replace(/([A-Z])/g, ' $1')}:</strong> {val}
+          </span>
+        ))}
+      </div>
+
+      {/* Owner Info */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, marginTop: 'auto' }}>
+        <SafetyCertificateOutlined style={{ color: '#2E7D32', fontSize: 16 }} />
+        <span style={{ fontSize: 12, color: '#64748b' }}>
+          Owner: <strong style={{ color: '#334155' }}>{equipment.owner.name}</strong>
+          {equipment.owner.phone && (
+            <span style={{ display: 'block', marginTop: 2 }}>
+              Mobile: {equipment.owner.phone}
+            </span>
+          )}
+        </span>
+      </div>
+
+      {/* Pricing & Actions */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: 10, borderTop: '1px solid #f1f5f9' }}>
+        <div>
+          {equipment.dailyRate > 0 && (
+            <div>
+              <span style={{ fontSize: 20, fontWeight: 800, color: '#2E7D32' }}>
+                {formatCurrency(equipment.dailyRate)}
+              </span>
+              <span style={{ fontSize: 12, color: '#64748b' }}> / day</span>
+            </div>
+          )}
+          {equipment.purchasePrice > 0 && (
+            <div style={{ fontSize: 11, color: '#64748b' }}>
+              Buy: <strong style={{ color: '#0f172a' }}>{formatCurrency(equipment.purchasePrice)}</strong>
+            </div>
+          )}
+        </div>
+
+        <Space>
+          <Button
+            type="default"
+            size="middle"
+            onClick={() => navigate(`/marketplace/${equipment.id}`)}
+          >
+            Details
+          </Button>
+          <Button
+            type="primary"
+            size="middle"
+            icon={<ThunderboltOutlined />}
+            onClick={() => navigate(`/booking/${equipment.id}`)}
+          >
+            Book Now
+          </Button>
+        </Space>
+      </div>
+    </Card>
+  );
+}
