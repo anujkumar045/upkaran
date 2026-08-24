@@ -1,17 +1,49 @@
 import React from 'react';
-import { Card, Tag, Button, Rate, Tooltip, Space } from 'antd';
-import { HeartOutlined, HeartFilled, EnvironmentOutlined, ThunderboltOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import { Card, Tag, Button, Rate, Tooltip, Space, message } from 'antd';
+import { HeartOutlined, HeartFilled, EnvironmentOutlined, ThunderboltOutlined, SafetyCertificateOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleWishlist } from '../../store/slices/equipmentSlice';
+import { addToCart } from '../../store/slices/cartSlice';
 import { formatCurrency } from '../../utils/formatters';
 
 export default function ProductCard({ equipment }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { wishlist } = useSelector((state) => state.equipment);
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
   const isWishlisted = wishlist.includes(equipment.id);
+  const rentalPrice = Number(equipment.dailyRate ?? equipment.rental_price ?? 0);
+  const salePrice = Number(equipment.purchasePrice ?? equipment.price ?? 0);
+  const listingType = String(equipment.type || '').toLowerCase();
+  const canRent = rentalPrice > 0 || listingType.includes('rent');
+  const canBuy = salePrice > 0 || listingType.includes('sale');
+
+  const handleBooking = () => {
+    if (!isAuthenticated) {
+      navigate('/register', { state: { from: `/booking/${equipment.id}` } });
+      return;
+    }
+    navigate(`/booking/${equipment.id}`);
+  };
+
+  const handlePurchase = () => {
+    if (!isAuthenticated) {
+      navigate('/register', { state: { from: `/marketplace/${equipment.id}` } });
+      return;
+    }
+    message.info('Please contact the equipment owner to complete this purchase.');
+  };
+
+  const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      navigate('/register', { state: { from: `/marketplace/${equipment.id}` } });
+      return;
+    }
+    dispatch(addToCart(equipment));
+    message.success(`${equipment.name} added to your cart.`);
+  };
 
   return (
     <Card
@@ -27,7 +59,10 @@ export default function ProductCard({ equipment }) {
       }}
       bodyStyle={{ padding: 18, display: 'flex', flexDirection: 'column', flex: 1 }}
       cover={
-        <div style={{ position: 'relative', height: 210, overflow: 'hidden', background: '#f1f5f9' }}>
+        <div
+          style={{ position: 'relative', height: 210, overflow: 'hidden', background: '#f1f5f9', cursor: 'pointer' }}
+          onClick={() => navigate(`/marketplace/${equipment.id}`)}
+        >
           <img
             alt={equipment.name}
             src={equipment.images[0]}
@@ -136,9 +171,9 @@ export default function ProductCard({ equipment }) {
       </div>
 
       {/* Pricing & Actions */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: 10, borderTop: '1px solid #f1f5f9' }}>
-        <div>
-          {equipment.dailyRate > 0 && (
+      <div style={{ paddingTop: 10, borderTop: '1px solid #f1f5f9' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: 42 }}>
+          {canRent && (
             <div>
               <span style={{ fontSize: 20, fontWeight: 800, color: '#2E7D32' }}>
                 {formatCurrency(equipment.dailyRate)}
@@ -146,30 +181,48 @@ export default function ProductCard({ equipment }) {
               <span style={{ fontSize: 12, color: '#64748b' }}> / day</span>
             </div>
           )}
-          {equipment.purchasePrice > 0 && (
+          {canBuy && (
             <div style={{ fontSize: 11, color: '#64748b' }}>
               Buy: <strong style={{ color: '#0f172a' }}>{formatCurrency(equipment.purchasePrice)}</strong>
             </div>
           )}
         </div>
 
-        <Space>
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginTop: 8 }}>
+          {canRent && (
+            <Button
+              type="primary"
+              size="middle"
+              icon={<ThunderboltOutlined />}
+              onClick={handleBooking}
+              style={{ marginRight: 'auto' }}
+            >
+              Book Now
+            </Button>
+          )}
+          {canBuy && (
+            <Button
+              type="primary"
+              size="middle"
+              onClick={handlePurchase}
+              style={{ marginLeft: 'auto', background: '#d97706', borderColor: '#d97706' }}
+            >
+              Buy Now
+            </Button>
+          )}
+        </div>
+
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 12, marginTop: 12 }}>
           <Button
             type="default"
             size="middle"
-            onClick={() => navigate(`/marketplace/${equipment.id}`)}
+            icon={<ShoppingCartOutlined />}
+            onClick={handleAddToCart}
+            style={{ marginRight: 'auto' }}
           >
-            Details
+            Add to Cart
           </Button>
-          <Button
-            type="primary"
-            size="middle"
-            icon={<ThunderboltOutlined />}
-            onClick={() => navigate(`/booking/${equipment.id}`)}
-          >
-            Book Now
-          </Button>
-        </Space>
+        </div>
       </div>
     </Card>
   );

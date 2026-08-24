@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     "cloudinary",
     "cloudinary_storage",
     "django_filters",
-
     "accounts",
     "marketplace",
     "bookings",
@@ -185,3 +184,17 @@ DEBUG = True
 
 RAZORPAY_KEY_ID = config("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = config("RAZORPAY_KEY_SECRET")
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com")
+EMAIL_PORT = config("EMAIL_PORT", cast=int, default=587)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)
+EMAIL_HOST_USER = config(
+    "EMAIL_HOST_USER",
+    default="prasadanujkumar045@gmail.com"
+)
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="kushwaha@2004")
+DEFAULT_FROM_EMAIL = config(
+    "DEFAULT_FROM_EMAIL",
+    default=EMAIL_HOST_USER
+)

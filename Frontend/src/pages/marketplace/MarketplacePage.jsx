@@ -77,7 +77,7 @@ export default function MarketplacePage() {
           state: 'All',
           dailyRate: Number(item.rental_price || 0),
           hourlyRate: Math.round(Number(item.rental_price || 0) / 6),
-          purchasePrice: Number(item.price || 0),
+          purchasePrice: Number(item.price ?? item.purchase_price ?? 0),
           rating: Number(item.average_rating || 0),
           reviewCount: 0,
           images: [getMediaUrl(item.image_url || item.image, apiOrigin)],

@@ -63,16 +63,16 @@ export default function DealerDashboard() {
 
       <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
         <Col xs={24} sm={12} lg={6}>
-          <StatCard title="Inventory Items" value={38} icon={<BarcodeOutlined />} iconBg="#ffedd5" iconColor="#ea580c" change={12} />
+          <StatCard title="Inventory Items" value={0} icon={<BarcodeOutlined />} iconBg="#ffedd5" iconColor="#ea580c" />
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <StatCard title="Open Orders" value={7} icon={<ShoppingCartOutlined />} iconBg="#dbeafe" iconColor="#2563eb" change={8} />
+          <StatCard title="Open Orders" value={0} icon={<ShoppingCartOutlined />} iconBg="#dbeafe" iconColor="#2563eb" />
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <StatCard title="Supplier Inquiries" value={11} icon={<UsergroupAddOutlined />} iconBg="#fef3c7" iconColor="#d97706" />
+          <StatCard title="Supplier Inquiries" value={0} icon={<UsergroupAddOutlined />} iconBg="#fef3c7" iconColor="#d97706" />
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <StatCard title="Monthly Sales" prefix="₹" value="18.4 L" icon={<DollarCircleOutlined />} iconBg="#dcfce7" iconColor="#16a34a" change={16} />
+          <StatCard title="Monthly Sales" prefix="₹" value={0} icon={<DollarCircleOutlined />} iconBg="#dcfce7" iconColor="#16a34a" />
         </Col>
       </Row>
 

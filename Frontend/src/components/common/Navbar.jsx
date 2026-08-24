@@ -23,7 +23,8 @@ import {
   TeamOutlined,
   MenuOutlined,
   SafetyCertificateOutlined,
-  SwapOutlined
+  SwapOutlined,
+  ShoppingCartOutlined
 } from '@ant-design/icons';
 import { setUserRole, logout } from '../../store/slices/authSlice';
 import { markAsRead } from '../../store/slices/notificationSlice';
@@ -47,6 +48,7 @@ export default function Navbar() {
   const { user, role } = useSelector((state) => state.auth);
   const { wishlist } = useSelector((state) => state.equipment);
   const { notifications } = useSelector((state) => state.notification);
+  const { items: cartItems } = useSelector((state) => state.cart);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -214,6 +216,13 @@ export default function Navbar() {
         <Link to="/dashboard/farmer/wishlist">
           <Badge count={wishlist.length} size="small" offset={[-2, 4]} color="#FFC107">
             <Button shape="circle" icon={<HeartOutlined style={{ fontSize: 18, color: '#334155' }} />} />
+          </Badge>
+        </Link>
+
+        {/* Notifications Bell */}
+        <Link to="/cart">
+          <Badge count={cartItems.length} size="small" offset={[-2, 4]} color="#d97706">
+            <Button shape="circle" icon={<ShoppingCartOutlined style={{ fontSize: 18, color: '#334155' }} />} />
           </Badge>
         </Link>
 

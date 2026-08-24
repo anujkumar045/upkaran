@@ -143,7 +143,7 @@ export default function HomePage() {
                   position: 'relative'
                 }}>
                   <img
-                    src="https://images.unsplash.com/photo-1592982537447-7440770cbfc9?auto=format&fit=crop&w=900&q=80"
+                    src="https://www.image2url.com/r2/default/files/1787583491537-ff4856b4-7566-4901-96a4-158f5a2d55f6.jpeg"
                     alt="Agricultural Tractor in Field"
                     style={{ width: '100%', height: 440, objectFit: 'cover' }}
                   />

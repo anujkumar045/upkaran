@@ -1,13 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Form, Input, Button, Card, message } from 'antd';
 import { LockOutlined, SafetyOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import axiosClient from '../../api/axiosClient';
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
-  const onFinish = () => {
-    navigate('/login');
+  const onFinish = async ({ otp, newPassword, confirmPassword }) => {
+    if (newPassword !== confirmPassword) {
+      message.error('Passwords do not match.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await axiosClient.post('/accounts/password-reset/confirm/', {
+        email: localStorage.getItem('upkaran_reset_email'),
+        otp,
+        new_password: newPassword,
+      });
+      localStorage.removeItem('upkaran_reset_email');
+      message.success('Password reset successful.');
+      navigate('/login');
+    } catch (error) {
+      message.error(error.response?.data?.detail || 'Unable to reset password.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -30,7 +51,7 @@ export default function ResetPasswordPage() {
           <Form.Item name="confirmPassword" label="Confirm New Password" rules={[{ required: true }]}>
             <Input.Password prefix={<LockOutlined style={{ color: '#94a3b8' }} />} placeholder="••••••••" size="large" />
           </Form.Item>
-          <Button type="primary" htmlType="submit" block size="large" style={{ background: '#2E7D32', height: 46 }}>
+          <Button type="primary" htmlType="submit" loading={loading} block size="large" style={{ background: '#2E7D32', height: 46 }}>
             Update Password & Login
           </Button>
         </Form>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Row,
@@ -33,12 +33,20 @@ export default function BookingCheckoutPage() {
   const dispatch = useDispatch();
 
   const { equipments } = useSelector((state) => state.equipment);
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const equipment = equipments.find((e) => e.id === id) || equipments[0];
-
   const [dateRange, setDateRange] = useState([
     dayjs().add(2, 'day'),
     dayjs().add(4, 'day')
   ]);
+
+  if (!isAuthenticated) {
+    return <Navigate to="/register" replace state={{ from: `/booking/${id}` }} />;
+  }
+
+  if (!equipment) {
+    return <div style={{ padding: 48, textAlign: 'center' }}>Equipment details are loading...</div>;
+  }
 
   const totalDays = dateRange && dateRange[0] && dateRange[1]
     ? dateRange[1].diff(dateRange[0], 'day') + 1

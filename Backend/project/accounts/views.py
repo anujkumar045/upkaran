@@ -8,7 +8,14 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import check_password, make_password
+from django.conf import settings
+from django.core.mail import EmailMessage
+from django.utils import timezone
 from django.db.models import Q
+
+import secrets
+from datetime import timedelta
 
 from .models import *
 
@@ -330,4 +337,105 @@ class ProfileCompletionView(APIView):
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+class PasswordResetRequestView(APIView):
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email", "").strip().lower()
+
+        if not email:
+            return Response(
+                {"email": "Email is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = User.objects.filter(email__iexact=email).first()
+        if user is None:
+            return Response(
+                {"detail": "No account is registered with this email."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        otp = f"{secrets.randbelow(1_000_000):06d}"
+        PasswordResetOTP.objects.filter(
+            user=user,
+            is_used=False
+        ).update(is_used=True)
+        PasswordResetOTP.objects.create(
+            user=user,
+            otp_hash=make_password(otp),
+            expires_at=timezone.now() + timedelta(minutes=10)
+        )
+
+        message = EmailMessage(
+            subject="Upkaran password reset OTP",
+            body=(
+                f"Your Upkaran password reset OTP is {otp}. "
+                "It expires in 10 minutes."
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[user.email]
+        )
+
+        try:
+            message.send(fail_silently=False)
+        except Exception:
+            PasswordResetOTP.objects.filter(
+                user=user,
+                is_used=False
+            ).update(is_used=True)
+            return Response(
+                {"detail": "Unable to send the OTP email. Please try again later."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+
+        return Response(
+            {"message": "OTP sent to your registered email address."},
+            status=status.HTTP_200_OK
+        )
+
+
+class PasswordResetConfirmView(APIView):
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email", "").strip().lower()
+        otp = str(request.data.get("otp", "")).strip()
+        new_password = request.data.get("new_password", "")
+
+        if not email or len(otp) != 6 or not otp.isdigit() or not new_password:
+            return Response(
+                {"detail": "Email, a 6-digit OTP, and a new password are required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = User.objects.filter(email__iexact=email).first()
+        reset_otp = PasswordResetOTP.objects.filter(
+            user=user,
+            is_used=False
+        ).order_by("-created_at").first() if user else None
+
+        if (
+            reset_otp is None
+            or reset_otp.expires_at <= timezone.now()
+            or not check_password(otp, reset_otp.otp_hash)
+        ):
+            return Response(
+                {"detail": "Invalid or expired OTP."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+        reset_otp.is_used = True
+        reset_otp.save(update_fields=["is_used"])
+
+        return Response(
+            {"message": "Password reset successful."},
+            status=status.HTTP_200_OK
         )

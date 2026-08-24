@@ -47,6 +47,22 @@ class User(AbstractUser):
         return self.username
 
 
+class PasswordResetOTP(models.Model):
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="password_reset_otps"
+    )
+    otp_hash = models.CharField(max_length=128)
+    expires_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Password reset OTP for {self.user.username}"
+
+
 class DealerProfile(models.Model):
 
     user = models.OneToOneField(

@@ -1,13 +1,27 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, Result } from 'antd';
-import { MailOutlined, PhoneOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Card, Result, message } from 'antd';
+import { MailOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
+import axiosClient from '../../api/axiosClient';
 
 export default function ForgotPasswordPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const onFinish = () => {
-    setSubmitted(true);
+  const onFinish = async ({ emailOrPhone }) => {
+    setLoading(true);
+
+    try {
+      await axiosClient.post('/accounts/password-reset/request/', {
+        email: emailOrPhone,
+      });
+      localStorage.setItem('upkaran_reset_email', emailOrPhone.trim());
+      setSubmitted(true);
+    } catch (error) {
+      message.error(error.response?.data?.detail || 'Unable to send OTP.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -22,10 +36,10 @@ export default function ForgotPasswordPage() {
               Enter your registered mobile number or email address and we'll send you an OTP verification code.
             </p>
             <Form layout="vertical" onFinish={onFinish}>
-              <Form.Item name="emailOrPhone" label="Mobile Number or Email" rules={[{ required: true }]}>
-                <Input prefix={<PhoneOutlined style={{ color: '#94a3b8' }} />} placeholder="e.g. 98980 12345" size="large" />
+              <Form.Item name="emailOrPhone" label="Registered Email" rules={[{ required: true, type: 'email' }]}>
+                <Input prefix={<MailOutlined style={{ color: '#94a3b8' }} />} placeholder="you@example.com" size="large" />
               </Form.Item>
-              <Button type="primary" htmlType="submit" block size="large" style={{ background: '#2E7D32', height: 46 }}>
+              <Button type="primary" htmlType="submit" loading={loading} block size="large" style={{ background: '#2E7D32', height: 46 }}>
                 Send Reset OTP
               </Button>
               <div style={{ textAlign: 'center', marginTop: 16 }}>

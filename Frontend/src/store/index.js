@@ -5,6 +5,7 @@ import bookingReducer from './slices/bookingSlice';
 import communityReducer from './slices/communitySlice';
 import notificationReducer from './slices/notificationSlice';
 import productReducer from './slices/productSlice';
+import cartReducer from './slices/cartSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,5 +15,6 @@ export const store = configureStore({
     community: communityReducer,
     notification: notificationReducer,
     products: productReducer,
+    cart: cartReducer,
   },
 });

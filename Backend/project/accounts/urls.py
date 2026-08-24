@@ -5,6 +5,8 @@ from .views import (
     LoginView,
     ProfileView,
     ProfileCompletionView,
+    PasswordResetRequestView,
+    PasswordResetConfirmView,
 )
 
 from rest_framework_simplejwt.views import (
@@ -26,6 +28,18 @@ urlpatterns = [
         "login/",
         LoginView.as_view(),
         name="login"
+    ),
+
+    path(
+        "password-reset/request/",
+        PasswordResetRequestView.as_view(),
+        name="password-reset-request"
+    ),
+
+    path(
+        "password-reset/confirm/",
+        PasswordResetConfirmView.as_view(),
+        name="password-reset-confirm"
     ),
 
     # Refresh JWT token

@@ -4,11 +4,13 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 // Layouts
 import MainLayout from '../layouts/MainLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
+import ProtectedLayout from '../layouts/ProtectedLayout';
 
 // Public Pages
 import HomePage from '../pages/home/HomePage';
 import MarketplacePage from '../pages/marketplace/MarketplacePage';
 import ProductDetailsPage from '../pages/marketplace/ProductDetailsPage';
+import CartPage from '../pages/marketplace/CartPage';
 import CommunityPage from '../pages/community/CommunityPage';
 
 // Auth Pages
@@ -63,6 +65,7 @@ export default function AppRoutes() {
         <Route path="/" element={<HomePage />} />
         <Route path="/marketplace" element={<MarketplacePage />} />
         <Route path="/marketplace/:id" element={<ProductDetailsPage />} />
+        <Route path="/cart" element={<CartPage />} />
         <Route path="/booking/:id" element={<BookingCheckoutPage />} />
         <Route path="/payment/qr/:bookingId" element={<QRPaymentPage />} />
         <Route path="/community" element={<CommunityPage />} />
@@ -78,8 +81,9 @@ export default function AppRoutes() {
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
 
-      {/* Dashboard Shared Layout */}
-      <Route element={<DashboardLayout />}>
+      {/* Protected dashboard routes */}
+      <Route element={<ProtectedLayout />}>
+        <Route element={<DashboardLayout />}>
         {/* Farmer Dashboard */}
         <Route path="/dashboard/farmer" element={<FarmerDashboard />} />
         <Route path="/dashboard/farmer/bookings" element={<BookingsPage />} />
@@ -112,6 +116,7 @@ export default function AppRoutes() {
         <Route path="/dashboard/admin/equipments" element={<EquipmentManagementPage />} />
         <Route path="/dashboard/admin/bookings" element={<BookingManagementPage />} />
         <Route path="/dashboard/admin/reports" element={<ReportsPage />} />
+        </Route>
       </Route>
 
       {/* Fallback 404 Route */}

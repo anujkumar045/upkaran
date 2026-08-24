@@ -16,7 +16,8 @@ import {
   Badge,
   Descriptions,
   List,
-  Modal
+  Modal,
+  message
 } from 'antd';
 import {
   HeartOutlined,
@@ -57,6 +58,7 @@ export default function ProductDetailsPage() {
   const dispatch = useDispatch();
 
   const { wishlist } = useSelector((state) => state.equipment);
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const [equipment, setEquipment] = useState(null);
   const [selectedImg, setSelectedImg] = useState('');
   const [zoomOpen, setZoomOpen] = useState(false);
@@ -100,8 +102,27 @@ export default function ProductDetailsPage() {
   }
 
   const isWishlisted = wishlist.includes(equipment.id);
+  const listingType = String(equipment.type || '').toLowerCase();
+  const canRent = Number(equipment.dailyRate ?? equipment.rental_price ?? 0) > 0 || listingType.includes('rent');
+  const canBuy = Number(equipment.purchasePrice ?? equipment.price ?? 0) > 0 || listingType.includes('sale');
 
   const similarEquipments = [];
+
+  const handleBooking = () => {
+    if (!isAuthenticated) {
+      navigate('/register', { state: { from: `/booking/${equipment.id}` } });
+      return;
+    }
+    navigate(`/booking/${equipment.id}`);
+  };
+
+  const handlePurchase = () => {
+    if (!isAuthenticated) {
+      navigate('/register', { state: { from: `/marketplace/${equipment.id}` } });
+      return;
+    }
+    message.info('Please contact the equipment owner to complete this purchase.');
+  };
 
   return (
     <div style={{ maxWidth: 1320, margin: '30px auto', padding: '0 24px' }}>
@@ -205,17 +226,31 @@ export default function ProductDetailsPage() {
               </Button>
             </div>
 
-            {/* Book Now Button */}
-            <Button
-              type="primary"
-              size="large"
-              block
-              icon={<ThunderboltOutlined />}
-              onClick={() => navigate(`/booking/${equipment.id}`)}
-              style={{ background: '#2E7D32', height: 54, fontSize: 18, fontWeight: 700, borderRadius: 14 }}
-            >
-              Book Equipment Now
-            </Button>
+            <Space direction="vertical" size={12} style={{ width: '100%', gap: 12 }}>
+              {canRent && (
+                <Button
+                  type="primary"
+                  size="large"
+                  block
+                  icon={<ThunderboltOutlined />}
+                  onClick={handleBooking}
+                  style={{ background: '#2E7D32', height: 54, fontSize: 18, fontWeight: 700, borderRadius: 14 }}
+                >
+                  Book Equipment Now
+                </Button>
+              )}
+              {canBuy && (
+                <Button
+                  type="primary"
+                  size="large"
+                  block
+                  onClick={handlePurchase}
+                  style={{ background: '#d97706', borderColor: '#d97706', height: 54, fontSize: 18, fontWeight: 700, borderRadius: 14 }}
+                >
+                  Buy Equipment Now
+                </Button>
+              )}
+            </Space>
           </Col>
         </Row>
       </Card>

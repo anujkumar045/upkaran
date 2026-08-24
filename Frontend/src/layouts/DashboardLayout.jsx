@@ -21,7 +21,6 @@ export default function DashboardLayout() {
           <Outlet />
         </Content>
       </Layout>
-      <Footer />
     </div>
   );
 }

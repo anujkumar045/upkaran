@@ -42,6 +42,14 @@ export default function FarmerDashboard() {
   const { bookings } = useSelector((state) => state.booking);
   const { equipments, wishlist } = useSelector((state) => state.equipment);
 
+  const farmerBookings = bookings.filter((booking) => (
+    String(booking.user) === String(user?.id) ||
+    booking.user_name === user?.username
+  ));
+  const rentalSpent = farmerBookings.reduce(
+    (total, booking) => total + Number(booking.total_amount ?? booking.totalAmount ?? 0),
+    0
+  );
   const wishlistedEquipments = equipments.filter((e) => wishlist.includes(e.id));
   const farmerName = [user?.first_name, user?.last_name]
     .filter(Boolean)
@@ -105,8 +113,7 @@ export default function FarmerDashboard() {
         <Col xs={24} sm={12} lg={6}>
           <StatCard
             title="Total Bookings"
-            value={bookings.length}
-            change={12}
+            value={farmerBookings.length}
             icon={<BookOutlined />}
             iconBg="#e8f5e9"
             iconColor="#2E7D32"
@@ -115,7 +122,7 @@ export default function FarmerDashboard() {
         <Col xs={24} sm={12} lg={6}>
           <StatCard
             title="Active Rentals"
-            value={bookings.filter(b => b.status === 'Confirmed').length}
+            value={farmerBookings.filter((booking) => ['approved', 'Confirmed'].includes(booking.status)).length}
             icon={<CheckCircleOutlined />}
             iconBg="#fef3c7"
             iconColor="#d97706"
@@ -134,7 +141,7 @@ export default function FarmerDashboard() {
           <StatCard
             title="Total Rental Spent"
             prefix="₹"
-            value="16,836"
+            value={rentalSpent}
             icon={<ClockCircleOutlined />}
             iconBg="#dbeafe"
             iconColor="#2563eb"
@@ -168,12 +175,12 @@ export default function FarmerDashboard() {
 
         <Col xs={24} lg={8}>
           <Card title="Upcoming Equipment Delivery" style={{ borderRadius: 20, height: '100%' }}>
-            {bookings.length > 0 ? (
+            {farmerBookings.length > 0 ? (
               <div>
                 <div style={{ background: '#e8f5e9', padding: 16, borderRadius: 14, marginBottom: 16 }}>
                   <Tag color="green" style={{ fontWeight: 700 }}>DELIVERY CONFIRMED</Tag>
-                  <h4 style={{ fontSize: 16, fontWeight: 700, marginTop: 8, color: '#0f172a' }}>{bookings[0].equipmentName}</h4>
-                  <p style={{ fontSize: 12, color: '#64748b', margin: '4px 0' }}>Owner: {bookings[0].ownerName} ({bookings[0].ownerPhone})</p>
+                  <h4 style={{ fontSize: 16, fontWeight: 700, marginTop: 8, color: '#0f172a' }}>{farmerBookings[0].equipment_name || farmerBookings[0].equipmentName}</h4>
+                  <p style={{ fontSize: 12, color: '#64748b', margin: '4px 0' }}>Owner: {farmerBookings[0].owner_name || farmerBookings[0].ownerName}</p>
                   <div style={{ marginTop: 12 }}>
                     <span style={{ fontSize: 12, fontWeight: 700, color: '#2E7D32' }}>Delivery Status: 85% On Track</span>
                     <Progress percent={85} strokeColor="#2E7D32" size="small" />

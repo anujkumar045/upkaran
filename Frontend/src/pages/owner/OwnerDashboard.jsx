@@ -20,8 +20,25 @@ export default function OwnerDashboard() {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const { equipments } = useSelector((state) => state.equipment);
+  const { bookings } = useSelector((state) => state.booking);
 
-  const ownerEquipments = equipments.slice(0, 3);
+  const ownerEquipments = equipments.filter((equipment) => (
+    String(equipment.owner_id ?? equipment.owner) === String(user?.id) ||
+    equipment.owner === user?.username ||
+    equipment.owner?.name === user?.username ||
+    equipment.owner?.username === user?.username
+  ));
+  const ownerBookings = bookings.filter((booking) => (
+    ownerEquipments.some((equipment) => String(equipment.id) === String(booking.equipment))
+  ));
+  const pendingRequests = ownerBookings.filter((booking) => booking.status === 'pending');
+  const completedRentals = ownerBookings.filter((booking) => (
+    ['completed', 'approved'].includes(booking.status)
+  ));
+  const monthlyRevenue = completedRentals.reduce(
+    (total, booking) => total + Number(booking.total_amount ?? booking.totalAmount ?? 0),
+    0
+  );
 
   const requestColumns = [
     { title: 'Farmer Name', dataIndex: 'farmerName', key: 'farmerName', render: (t) => <strong>{t}</strong> },
@@ -86,8 +103,7 @@ export default function OwnerDashboard() {
           <StatCard
             title="Monthly Revenue"
             prefix="₹"
-            value="48,500"
-            change={18}
+            value={monthlyRevenue}
             icon={<DollarCircleOutlined />}
             iconBg="#e8f5e9"
             iconColor="#2E7D32"
@@ -105,7 +121,7 @@ export default function OwnerDashboard() {
         <Col xs={24} sm={12} lg={6}>
           <StatCard
             title="Pending Requests"
-            value={2}
+            value={pendingRequests.length}
             icon={<BookOutlined />}
             iconBg="#fef3c7"
             iconColor="#d97706"
@@ -114,7 +130,7 @@ export default function OwnerDashboard() {
         <Col xs={24} sm={12} lg={6}>
           <StatCard
             title="Completed Rentals"
-            value={28}
+            value={completedRentals.length}
             icon={<CheckCircleOutlined />}
             iconBg="#f3e8ff"
             iconColor="#9333ea"
@@ -159,7 +175,7 @@ export default function OwnerDashboard() {
 
       {/* Pending Rental Requests Table */}
       <Card title="Incoming Farmer Rental Requests" style={{ borderRadius: 20 }}>
-        <Table columns={requestColumns} dataSource={requestsData} pagination={false} />
+        <Table columns={requestColumns} dataSource={pendingRequests} rowKey="id" pagination={false} locale={{ emptyText: 'No rental requests yet' }} />
       </Card>
     </div>
   );

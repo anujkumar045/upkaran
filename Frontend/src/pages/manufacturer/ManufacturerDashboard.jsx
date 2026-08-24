@@ -60,16 +60,16 @@ export default function ManufacturerDashboard() {
 
       <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
         <Col xs={24} sm={12} lg={6}>
-          <StatCard title="Total Showcase Products" value={14} icon={<ShoppingOutlined />} iconBg="#dbeafe" iconColor="#2563eb" />
+          <StatCard title="Total Showcase Products" value={0} icon={<ShoppingOutlined />} iconBg="#dbeafe" iconColor="#2563eb" />
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <StatCard title="Available Stock Inventory" value={85} suffix=" units" icon={<BarcodeOutlined />} iconBg="#e8f5e9" iconColor="#2E7D32" />
+          <StatCard title="Available Stock Inventory" value={0} suffix=" units" icon={<BarcodeOutlined />} iconBg="#e8f5e9" iconColor="#2E7D32" />
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <StatCard title="B2B Dealer Inquiries" value={24} icon={<UsergroupAddOutlined />} iconBg="#fef3c7" iconColor="#d97706" />
+          <StatCard title="B2B Dealer Inquiries" value={0} icon={<UsergroupAddOutlined />} iconBg="#fef3c7" iconColor="#d97706" />
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <StatCard title="Gross Sales Order Pipeline" prefix="₹" value="42.5 L" icon={<LineChartOutlined />} iconBg="#f3e8ff" iconColor="#9333ea" />
+          <StatCard title="Gross Sales Order Pipeline" prefix="₹" value={0} icon={<LineChartOutlined />} iconBg="#f3e8ff" iconColor="#9333ea" />
         </Col>
       </Row>
 

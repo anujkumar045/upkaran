@@ -84,22 +84,26 @@ axiosClient.interceptors.response.use(
     const originalRequest =
       error.config;
 
+    const skipAuthRedirect =
+      originalRequest?.skipAuthRedirect;
+
     const isAuthRequest =
       originalRequest?.url?.includes('/accounts/login/') ||
       originalRequest?.url?.includes('/accounts/register/') ||
       originalRequest?.url?.includes('/token/');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | ACCESS TOKEN EXPIRED
-    |--------------------------------------------------------------------------
-    */
+        /*
+        |--------------------------------------------------------------------------
+        | ACCESS TOKEN EXPIRED
+        |--------------------------------------------------------------------------
+        */
 
     if (
       error.response?.status === 401 &&
       !originalRequest?._retry &&
-      !isAuthRequest
+      !isAuthRequest &&
+      !skipAuthRedirect
     ) {
 
       originalRequest._retry = true;

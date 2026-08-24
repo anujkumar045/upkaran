@@ -68,16 +68,16 @@ export default function AdminDashboard() {
       {/* Metrics Row */}
       <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
         <Col xs={24} sm={12} lg={6}>
-          <StatCard title="Total Platform Users" value="14,250" change={14} icon={<UsergroupAddOutlined />} iconBg="#e8f5e9" iconColor="#2E7D32" />
+          <StatCard title="Total Platform Users" value={0} icon={<UsergroupAddOutlined />} iconBg="#e8f5e9" iconColor="#2E7D32" />
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <StatCard title="Verified Machinery" value="3,190" icon={<ToolOutlined />} iconBg="#dbeafe" iconColor="#2563eb" />
+          <StatCard title="Verified Machinery" value={0} icon={<ToolOutlined />} iconBg="#dbeafe" iconColor="#2563eb" />
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <StatCard title="Monthly Gross GMV" prefix="₹" value="18.45 L" change={26} icon={<DollarCircleOutlined />} iconBg="#fef3c7" iconColor="#d97706" />
+          <StatCard title="Monthly Gross GMV" prefix="₹" value={0} icon={<DollarCircleOutlined />} iconBg="#fef3c7" iconColor="#d97706" />
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <StatCard title="Pending Approvals" value="14" icon={<WarningOutlined />} iconBg="#ffe4e6" iconColor="#e11d48" />
+          <StatCard title="Pending Approvals" value={0} icon={<WarningOutlined />} iconBg="#ffe4e6" iconColor="#e11d48" />
         </Col>
       </Row>
 
