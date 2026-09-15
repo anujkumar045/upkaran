@@ -5,14 +5,22 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleWishlist } from '../../store/slices/equipmentSlice';
 import { addToCart } from '../../store/slices/cartSlice';
+import { readUserCollection, writeUserCollection } from '../../utils/userStorage';
 import { formatCurrency } from '../../utils/formatters';
 
 export default function ProductCard({ equipment }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { wishlist } = useSelector((state) => state.equipment);
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
 
+  const equipmentImages = equipment.images || [];
+  const equipmentSpecs = equipment.specs || {};
+  const equipmentOwner = equipment.owner || {};
+  const ownerName = typeof equipmentOwner === 'string'
+    ? equipmentOwner
+    : equipmentOwner.name || 'Equipment Owner';
+  const ownerPhone = typeof equipmentOwner === 'object' ? equipmentOwner.phone : '';
   const isWishlisted = wishlist.includes(equipment.id);
   const rentalPrice = Number(equipment.dailyRate ?? equipment.rental_price ?? 0);
   const salePrice = Number(equipment.purchasePrice ?? equipment.price ?? 0);
@@ -33,7 +41,7 @@ export default function ProductCard({ equipment }) {
       navigate('/register', { state: { from: `/marketplace/${equipment.id}` } });
       return;
     }
-    message.info('Please contact the equipment owner to complete this purchase.');
+    navigate(`/payment/purchase/${equipment.id}`);
   };
 
   const handleAddToCart = () => {
@@ -42,6 +50,10 @@ export default function ProductCard({ equipment }) {
       return;
     }
     dispatch(addToCart(equipment));
+    const currentItems = readUserCollection('cart', user.id);
+    if (!currentItems.some((item) => item.id === equipment.id)) {
+      writeUserCollection('cart', user.id, [...currentItems, equipment]);
+    }
     message.success(`${equipment.name} added to your cart.`);
   };
 
@@ -65,7 +77,7 @@ export default function ProductCard({ equipment }) {
         >
           <img
             alt={equipment.name}
-            src={equipment.images[0]}
+            src={equipmentImages[0] || 'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?auto=format&fit=crop&w=600&q=80'}
             style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }}
             onError={(e) => {
               e.target.src = 'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?auto=format&fit=crop&w=600&q=80';
@@ -78,6 +90,10 @@ export default function ProductCard({ equipment }) {
             onClick={(e) => {
               e.stopPropagation();
               dispatch(toggleWishlist(equipment.id));
+              const nextWishlist = wishlist.includes(equipment.id)
+                ? wishlist.filter((id) => id !== equipment.id)
+                : [...wishlist, equipment.id];
+              writeUserCollection('wishlist', user?.id, nextWishlist);
             }}
             style={{
               position: 'absolute',
@@ -101,7 +117,7 @@ export default function ProductCard({ equipment }) {
             )}
           </div>
 
-          <div style={{
+          <div className="product-location-badge" style={{
             position: 'absolute',
             bottom: 8,
             left: 12,
@@ -121,7 +137,7 @@ export default function ProductCard({ equipment }) {
       }
     >
       {/* Category Tag */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+      <div className="product-meta-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: '#4CAF50', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           {equipment.category}
         </span>
@@ -150,7 +166,7 @@ export default function ProductCard({ equipment }) {
         flexWrap: 'wrap',
         gap: 6
       }}>
-        {Object.entries(equipment.specs).slice(0, 2).map(([key, val]) => (
+        {Object.entries(equipmentSpecs).slice(0, 2).map(([key, val]) => (
           <span key={key} style={{ textTransform: 'capitalize' }}>
             <strong style={{ color: '#0f172a' }}>{key.replace(/([A-Z])/g, ' $1')}:</strong> {val}
           </span>
@@ -161,10 +177,10 @@ export default function ProductCard({ equipment }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, marginTop: 'auto' }}>
         <SafetyCertificateOutlined style={{ color: '#2E7D32', fontSize: 16 }} />
         <span style={{ fontSize: 12, color: '#64748b' }}>
-          Owner: <strong style={{ color: '#334155' }}>{equipment.owner.name}</strong>
-          {equipment.owner.phone && (
+          Owner: <strong style={{ color: '#334155' }}>{ownerName}</strong>
+          {ownerPhone && (
             <span style={{ display: 'block', marginTop: 2 }}>
-              Mobile: {equipment.owner.phone}
+              Mobile: {ownerPhone}
             </span>
           )}
         </span>
@@ -188,14 +204,14 @@ export default function ProductCard({ equipment }) {
           )}
         </div>
 
-        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginTop: 8 }}>
+        <div className="product-actions-row" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
           {canRent && (
             <Button
               type="primary"
-              size="middle"
+              size="small"
               icon={<ThunderboltOutlined />}
               onClick={handleBooking}
-              style={{ marginRight: 'auto' }}
+              style={{ flex: 1, minWidth: 0, height: 32, paddingInline: 6, fontSize: 12 }}
             >
               Book Now
             </Button>
@@ -203,22 +219,19 @@ export default function ProductCard({ equipment }) {
           {canBuy && (
             <Button
               type="primary"
-              size="middle"
+              size="small"
               onClick={handlePurchase}
-              style={{ marginLeft: 'auto', background: '#d97706', borderColor: '#d97706' }}
+              style={{ flex: 1, minWidth: 0, height: 32, paddingInline: 6, fontSize: 12, background: '#d97706', borderColor: '#d97706' }}
             >
               Buy Now
             </Button>
           )}
-        </div>
-
-        <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 12, marginTop: 12 }}>
           <Button
             type="default"
-            size="middle"
+            size="small"
             icon={<ShoppingCartOutlined />}
             onClick={handleAddToCart}
-            style={{ marginRight: 'auto' }}
+            style={{ flex: 1, minWidth: 0, height: 32, paddingInline: 6, fontSize: 12 }}
           >
             Add to Cart
           </Button>

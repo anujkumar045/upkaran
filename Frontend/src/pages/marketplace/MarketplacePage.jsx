@@ -104,7 +104,7 @@ export default function MarketplacePage() {
   const [selectedCat, setSelectedCat] = useState(searchParams.get('category') || 'All');
   const [selectedState, setSelectedState] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
-  const [maxPrice, setMaxPrice] = useState(5000);
+  const [maxPrice, setMaxPrice] = useState(50000);
   const [sortBy, setSortBy] = useState('featured');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -138,7 +138,7 @@ export default function MarketplacePage() {
     setSelectedCat('All');
     setSelectedState('All');
     setSelectedType('All');
-    setMaxPrice(5000);
+    setMaxPrice(50000);
     setSortBy('featured');
   };
 
@@ -189,7 +189,7 @@ export default function MarketplacePage() {
         </div>
         <Slider
           min={500}
-          max={10000}
+          max={50000}
           step={500}
           value={maxPrice}
           onChange={setMaxPrice}
@@ -216,7 +216,7 @@ export default function MarketplacePage() {
           </p>
         </div>
 
-        <Space wrap>
+        <Space wrap className="marketplace-controls">
           {/* Mobile Filter Button */}
           <Button
             icon={<FilterOutlined />}
@@ -229,7 +229,7 @@ export default function MarketplacePage() {
           </Button>
 
           {/* Sort By Dropdown */}
-          <Select value={sortBy} onChange={setSortBy} style={{ width: 200 }}>
+          <Select value={sortBy} onChange={setSortBy} className="marketplace-sort" style={{ width: 200 }}>
             <Select.Option value="featured">⚡ Featured & Recommended</Select.Option>
             <Select.Option value="price-low">Price: Low to High</Select.Option>
             <Select.Option value="price-high">Price: High to Low</Select.Option>
@@ -273,7 +273,7 @@ export default function MarketplacePage() {
             <>
               <Row gutter={[24, 24]}>
                 {paginatedEquipments.map((eq) => (
-                  <Col xs={24} sm={12} xl={8} key={eq.id}>
+                  <Col xs={24} sm={12} md={8} key={eq.id}>
                     <ProductCard equipment={eq} />
                   </Col>
                 ))}

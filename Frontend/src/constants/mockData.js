@@ -7,6 +7,7 @@ export const CATEGORIES = [
   { id: 'cat-4', name: 'Planting & Sowing', icon: '🌽', count: 64, image: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=600&q=80' },
   { id: 'cat-5', name: 'Irrigation & Solar Pumps', icon: '💧', count: 95, image: 'https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?auto=format&fit=crop&w=600&q=80' },
   { id: 'cat-6', name: 'Agri Drones & Tech', icon: '🚁', count: 38, image: 'https://images.unsplash.com/photo-1527977966376-1c8408f9f108?auto=format&fit=crop&w=600&q=80' },
+  { id: 'cat-7', name: 'Spraying & Crop Protection', icon: '🧴', count: 0, image: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=600&q=80' },
 ];
 
 export const MOCK_EQUIPMENT = [
@@ -45,7 +46,7 @@ export const MOCK_EQUIPMENT = [
       totalListings: 6,
       joined: 'Jan 2022',
       upiId: '',
-      qrCodeUrl: ''
+      qrCodeUrl: 'https://www.image2url.com/r2/default/files/1787605354243-c2db4a9a-c0c8-446b-9aa7-a3fa37915177.jpeg'
     },
     availability: ['2026-08-05', '2026-08-06', '2026-08-07', '2026-08-10', '2026-08-11'],
     featured: true,

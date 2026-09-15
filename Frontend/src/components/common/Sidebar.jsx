@@ -42,6 +42,7 @@ export default function Sidebar({ collapsed, onCollapse }) {
   return (
     <Sider
       collapsible
+      breakpoint="lg"
       collapsed={collapsed}
       onCollapse={onCollapse}
       theme="light"

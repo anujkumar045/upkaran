@@ -12,7 +12,8 @@ import {
   Avatar,
   Form,
   Input,
-  Space
+  Space,
+  message
 } from 'antd';
 import {
   CalendarOutlined,
@@ -24,6 +25,7 @@ import {
 import dayjs from 'dayjs';
 import { setBookingDraft } from '../../store/slices/bookingSlice';
 import { formatCurrency } from '../../utils/formatters';
+import axiosClient from '../../api/axiosClient';
 
 const { RangePicker } = DatePicker;
 
@@ -39,6 +41,8 @@ export default function BookingCheckoutPage() {
     dayjs().add(2, 'day'),
     dayjs().add(4, 'day')
   ]);
+  const [submitting, setSubmitting] = useState(false);
+  const ownerName = equipment?.owner?.name || equipment?.owner?.username || 'Verified Machine Owner';
 
   if (!isAuthenticated) {
     return <Navigate to="/register" replace state={{ from: `/booking/${id}` }} />;
@@ -57,30 +61,33 @@ export default function BookingCheckoutPage() {
   const platformFee = 150;
   const grandTotal = subtotal + tax + platformFee;
 
-  const handleProceedToPayment = () => {
-    const bookingDraft = {
-      id: `BK-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-      equipmentId: equipment.id,
-      equipmentName: equipment.name,
-      ownerName: equipment.owner.name,
-      ownerPhone: equipment.owner.phone,
-      ownerUpi: equipment.owner.upiId,
-      ownerQrUrl: equipment.owner.qrCodeUrl,
-      startDate: dateRange[0].format('YYYY-MM-DD'),
-      endDate: dateRange[1].format('YYYY-MM-DD'),
-      totalDays,
-      dailyRate: equipment.dailyRate,
-      subtotal,
-      tax,
-      platformFee,
-      totalAmount: grandTotal,
-      status: 'Pending',
-      paymentStatus: 'Pending Payment Upload',
-      bookedAt: new Date().toISOString(),
-    };
+  const handleProceedToPayment = async () => {
+    setSubmitting(true);
+    try {
+      const { data } = await axiosClient.post('/bookings/bookings/', {
+        equipment: equipment.id,
+        start_date: dateRange[0].format('YYYY-MM-DD'),
+        end_date: dateRange[1].format('YYYY-MM-DD'),
+      });
 
-    dispatch(setBookingDraft(bookingDraft));
-    navigate(`/payment/qr/${bookingDraft.id}`);
+      dispatch(setBookingDraft({
+        ...data,
+        equipmentId: data.equipment,
+        equipmentName: data.equipment_name || equipment.name,
+        ownerName: data.owner_name || equipment.owner.name,
+        startDate: data.start_date,
+        endDate: data.end_date,
+        totalDays: data.total_days,
+        dailyRate: data.daily_rate,
+        totalAmount: data.total_amount,
+        paymentStatus: data.payment_status,
+      }));
+      navigate(`/payment/qr/${data.id}`);
+    } catch (error) {
+      message.error(error.response?.data?.equipment?.[0] || 'Unable to create the booking. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -155,9 +162,9 @@ export default function BookingCheckoutPage() {
 
             {/* Owner Info */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-              <Avatar style={{ background: '#2E7D32' }}>{equipment.owner.name[0]}</Avatar>
+              <Avatar style={{ background: '#2E7D32' }}>{(ownerName || 'V').charAt(0).toUpperCase()}</Avatar>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{equipment.owner.name}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{ownerName}</div>
                 <div style={{ fontSize: 11, color: '#64748b' }}>Verified Machine Owner</div>
               </div>
             </div>
@@ -195,6 +202,7 @@ export default function BookingCheckoutPage() {
               block
               icon={<ThunderboltOutlined />}
               onClick={handleProceedToPayment}
+              loading={submitting}
               style={{ background: '#2E7D32', height: 50, fontSize: 16, fontWeight: 700, borderRadius: 12, marginTop: 24 }}
             >
               Proceed to UPI QR Payment <ArrowRightOutlined />

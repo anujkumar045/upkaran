@@ -16,7 +16,7 @@ export default function DashboardLayout() {
       <Navbar />
       <Layout style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
         <Sidebar collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} />
-        <Content style={{ padding: '24px 32px', minHeight: 280, maxWidth: 1400, width: '100%', margin: '0 auto' }}>
+        <Content className="dashboard-content" style={{ padding: '24px 32px', minHeight: 280, maxWidth: 1400, width: '100%', margin: '0 auto' }}>
           <CustomBreadcrumb />
           <Outlet />
         </Content>

@@ -5,11 +5,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { removeFromCart } from '../../store/slices/cartSlice';
 import { formatCurrency } from '../../utils/formatters';
+import { writeUserCollection } from '../../utils/userStorage';
 
 export default function CartPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { items } = useSelector((state) => state.cart);
+  const { user } = useSelector((state) => state.auth);
 
   return (
     <div style={{ maxWidth: 1100, margin: '30px auto', padding: '0 24px' }}>
@@ -46,7 +48,11 @@ export default function CartPage() {
                         type="text"
                         danger
                         icon={<DeleteOutlined />}
-                        onClick={() => dispatch(removeFromCart(item.id))}
+                        onClick={() => {
+                          const nextItems = items.filter((cartItem) => cartItem.id !== item.id);
+                          dispatch(removeFromCart(item.id));
+                          writeUserCollection('cart', user?.id, nextItems);
+                        }}
                       >
                         Remove
                       </Button>,

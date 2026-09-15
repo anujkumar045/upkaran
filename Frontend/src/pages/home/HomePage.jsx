@@ -36,8 +36,21 @@ const { Search } = Input;
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { equipments } = useSelector((state) => state.equipment);
+  const { equipments = [] } = useSelector((state) => state.equipment);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const totalListings = equipments.length;
+  const availableMachinery = equipments.filter((equipment) => equipment.is_available !== false).length;
+  const coveredLocations = new Set(
+    equipments.map((equipment) => equipment.location).filter(Boolean)
+  ).size;
+  const rentalListings = equipments.filter((equipment) => (
+    Number(equipment.dailyRate ?? equipment.rental_price ?? 0) > 0
+  )).length;
+
+  const categoryCount = (categoryName) => equipments.filter((equipment) => (
+    equipment.category === categoryName || equipment.category_name === categoryName
+  )).length;
 
   const handleSearch = (value) => {
     navigate(`/marketplace?search=${encodeURIComponent(value)}`);
@@ -46,7 +59,7 @@ export default function HomePage() {
   return (
     <div style={{ backgroundColor: '#F8FAFC', overflow: 'hidden' }}>
       {/* 1. HERO SECTION */}
-      <section className="hero-gradient" style={{ padding: '80px 24px 100px 24px', position: 'relative' }}>
+      <section className="hero-gradient home-hero-section" style={{ padding: '80px 24px 100px 24px', position: 'relative' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <Row gutter={[48, 48]} align="middle">
             <Col xs={24} lg={13}>
@@ -71,24 +84,24 @@ export default function HomePage() {
                   India's #1 Agriculture Equipment SaaS & Rental Network
                 </Tag>
 
-                <h1 style={{
+                <h1 className="brand-font home-hero-title" style={{
                   fontSize: 52,
                   fontWeight: 800,
                   lineHeight: 1.15,
                   color: '#0f172a',
                   marginBottom: 20,
                   letterSpacing: '-1px'
-                }} className="brand-font">
+                }}>
                   Rent Modern Farm Equipment. <br />
                   <span className="brand-gradient-text">Max Crop Yield, Zero Capital Waste.</span>
                 </h1>
 
-                <p style={{ fontSize: 18, color: '#475569', marginBottom: 36, maxWidth: 580, lineHeight: 1.6 }}>
+                <p className="home-hero-copy" style={{ fontSize: 18, color: '#475569', marginBottom: 36, maxWidth: 580, lineHeight: 1.6 }}>
                   Connect directly with verified machine owners & manufacturers across India. Hire high-horsepower tractors, combine harvesters, rotavators & spray drones on demand.
                 </p>
 
                 {/* Hero Search Bar */}
-                <div className="glass-card" style={{ padding: 12, borderRadius: 16, maxWidth: 620, marginBottom: 36 }}>
+                <div className="glass-card home-hero-search" style={{ padding: 12, borderRadius: 16, maxWidth: 620, marginBottom: 36 }}>
                   <Input.Search
                     placeholder="Search by tractor, harvester, location (e.g. Ludhiana)..."
                     enterButton={
@@ -127,7 +140,7 @@ export default function HomePage() {
             </Col>
 
             {/* Hero Right Visuals & Floating Cards */}
-            <Col xs={24} lg={11}>
+            <Col xs={24} lg={11} className="home-hero-visual">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -143,6 +156,7 @@ export default function HomePage() {
                   position: 'relative'
                 }}>
                   <img
+                    className="home-hero-image"
                     src="https://www.image2url.com/r2/default/files/1787583491537-ff4856b4-7566-4901-96a4-158f5a2d55f6.jpeg"
                     alt="Agricultural Tractor in Field"
                     style={{ width: '100%', height: 440, objectFit: 'cover' }}
@@ -151,9 +165,9 @@ export default function HomePage() {
 
                 {/* Floating Card 1: Verified Booking */}
                 <motion.div
+                  className="glass-card home-float-card home-float-card-left"
                   animate={{ y: [0, -10, 0] }}
                   transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
-                  className="glass-card"
                   style={{
                     position: 'absolute',
                     top: -20,
@@ -177,9 +191,9 @@ export default function HomePage() {
 
                 {/* Floating Card 2: Earnings */}
                 <motion.div
+                  className="glass-card home-float-card home-float-card-right"
                   animate={{ y: [0, 10, 0] }}
                   transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut', delay: 1 }}
-                  className="glass-card"
                   style={{
                     position: 'absolute',
                     bottom: -20,
@@ -211,20 +225,20 @@ export default function HomePage() {
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <Row gutter={[24, 24]} justify="space-between" align="middle">
             <Col xs={12} md={6} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 36, fontWeight: 800, color: '#4CAF50' }} className="brand-font">14,250+</div>
-              <div style={{ fontSize: 13, color: '#94a3b8' }}>Registered Farmers</div>
+              <div style={{ fontSize: 36, fontWeight: 800, color: '#4CAF50' }} className="brand-font">{totalListings}</div>
+              <div style={{ fontSize: 13, color: '#94a3b8' }}>Total Listings</div>
             </Col>
             <Col xs={12} md={6} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 36, fontWeight: 800, color: '#FFC107' }} className="brand-font">3,190+</div>
-              <div style={{ fontSize: 13, color: '#94a3b8' }}>Verified Machinery</div>
+              <div style={{ fontSize: 36, fontWeight: 800, color: '#FFC107' }} className="brand-font">{availableMachinery}</div>
+              <div style={{ fontSize: 13, color: '#94a3b8' }}>Available Machinery</div>
             </Col>
             <Col xs={12} md={6} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 36, fontWeight: 800, color: '#60A5FA' }} className="brand-font">180+</div>
-              <div style={{ fontSize: 13, color: '#94a3b8' }}>Districts Covered</div>
+              <div style={{ fontSize: 36, fontWeight: 800, color: '#60A5FA' }} className="brand-font">{coveredLocations}</div>
+              <div style={{ fontSize: 13, color: '#94a3b8' }}>Locations Covered</div>
             </Col>
             <Col xs={12} md={6} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 36, fontWeight: 800, color: '#F472B6' }} className="brand-font">₹1.8 Cr+</div>
-              <div style={{ fontSize: 13, color: '#94a3b8' }}>Total Rental Earnings</div>
+              <div style={{ fontSize: 36, fontWeight: 800, color: '#F472B6' }} className="brand-font">{rentalListings}</div>
+              <div style={{ fontSize: 13, color: '#94a3b8' }}>Rental Listings</div>
             </Col>
           </Row>
         </div>
@@ -259,7 +273,7 @@ export default function HomePage() {
                   <h4 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginBottom: 4, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {cat.name}
                   </h4>
-                  <Tag color="default" style={{ borderRadius: 10, fontSize: 11 }}>{cat.count} listings</Tag>
+                  <Tag color="default" style={{ borderRadius: 10, fontSize: 11 }}>{categoryCount(cat.name)} listings</Tag>
                 </Card>
               </Col>
             ))}

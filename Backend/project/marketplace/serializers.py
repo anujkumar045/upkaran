@@ -12,7 +12,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class EquipmentSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source="owner.username")
-    owner_name = serializers.ReadOnlyField(source="owner.get_full_name")
+    owner_name = serializers.SerializerMethodField()
     owner_phone = serializers.ReadOnlyField(source="owner.phone")
     category_name = serializers.ReadOnlyField(source="category.name")
     category = serializers.PrimaryKeyRelatedField(
@@ -55,6 +55,14 @@ class EquipmentSerializer(serializers.ModelSerializer):
         )["rating__avg"]
 
         return round(average, 1) if average else 0
+
+    def get_owner_name(self, obj):
+        if obj.owner.role == "dealer":
+            dealer_profile = getattr(obj.owner, "dealer_profile", None)
+            if dealer_profile and dealer_profile.shop_name:
+                return dealer_profile.shop_name
+
+        return obj.owner.get_full_name() or obj.owner.username
 
     def create(self, validated_data):
         category_label = validated_data.pop("category_label", None)

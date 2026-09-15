@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import axiosClient from '../../api/axiosClient';
-import { setEquipments } from '../../store/slices/equipmentSlice';
+import { setEquipments, setWishlist } from '../../store/slices/equipmentSlice';
+import { setCartItems } from '../../store/slices/cartSlice';
+import { readUserCollection } from '../../utils/userStorage';
 import { setBookings } from '../../store/slices/bookingSlice';
 import { setPosts } from '../../store/slices/communitySlice';
 import { loginSuccess } from '../../store/slices/authSlice';
@@ -43,36 +45,50 @@ const normalizeEquipment = (equipment) => ({
 export default function BackendDataBootstrap() {
   const dispatch = useDispatch();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const user = useSelector((state) => state.auth.user);
 
   useEffect(() => {
     const accessToken = localStorage.getItem('upkaran_access_token');
-    if (!accessToken) {
-      return undefined;
-    }
-
     const bootstrapConfig = { skipAuthRedirect: true };
-    const loadBackendData = () => Promise.all([
-      axiosClient.get('/marketplace/equipments/', bootstrapConfig),
+    const loadUserCollections = (userId) => {
+      dispatch(setWishlist(readUserCollection('wishlist', userId)));
+      dispatch(setCartItems(readUserCollection('cart', userId)));
+    };
+
+    const loadPublicData = () => axiosClient.get(
+      '/marketplace/equipments/',
+      bootstrapConfig
+    ).then((equipmentResponse) => {
+      dispatch(setEquipments(resultsOf(equipmentResponse).map(normalizeEquipment)));
+    });
+
+    const loadPrivateData = () => Promise.all([
       axiosClient.get('/bookings/bookings/', bootstrapConfig),
       axiosClient.get('/community/posts/', bootstrapConfig),
-    ]).then(([equipmentResponse, bookingResponse, postResponse]) => {
-      dispatch(setEquipments(resultsOf(equipmentResponse).map(normalizeEquipment)));
+    ]).then(([bookingResponse, postResponse]) => {
       dispatch(setBookings(resultsOf(bookingResponse)));
       dispatch(setPosts(resultsOf(postResponse)));
     });
 
+    if (!accessToken) {
+      loadPublicData().catch(() => {});
+      return undefined;
+    }
+
     if (isAuthenticated) {
-      loadBackendData().catch(() => {});
+      Promise.all([loadPublicData(), loadPrivateData()]).catch(() => {});
+      loadUserCollections(user?.id);
       return undefined;
     }
 
     axiosClient.get('/accounts/profile/', { skipAuthRedirect: true })
       .then((response) => {
         dispatch(loginSuccess({ user: response.data }));
-        return loadBackendData();
+        loadUserCollections(response.data.id);
+        return Promise.all([loadPublicData(), loadPrivateData()]);
       })
       .catch(() => {});
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated, user?.id]);
 
   return null;
 }

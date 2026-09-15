@@ -23,6 +23,7 @@ import ProfileCompletionPage from '../pages/auth/ProfileCompletionPage';
 // Booking & Payment
 import BookingCheckoutPage from '../pages/booking/BookingCheckoutPage';
 import QRPaymentPage from '../pages/payment/QRPaymentPage';
+import PurchasePaymentPage from '../pages/payment/PurchasePaymentPage';
 
 // Farmer Dashboard
 import FarmerDashboard from '../pages/farmer/FarmerDashboard';
@@ -50,6 +51,7 @@ import UserManagementPage from '../pages/admin/UserManagementPage';
 import EquipmentManagementPage from '../pages/admin/EquipmentManagementPage';
 import BookingManagementPage from '../pages/admin/BookingManagementPage';
 import ReportsPage from '../pages/admin/ReportsPage';
+import PaymentsPage from '../pages/admin/PaymentsPage';
 
 // Common User Pages
 import UserProfilePage from '../pages/profile/UserProfilePage';
@@ -68,6 +70,7 @@ export default function AppRoutes() {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/booking/:id" element={<BookingCheckoutPage />} />
         <Route path="/payment/qr/:bookingId" element={<QRPaymentPage />} />
+        <Route path="/payment/purchase/:id" element={<PurchasePaymentPage />} />
         <Route path="/community" element={<CommunityPage />} />
 
         <Route path="/login" element={<LoginPage />} />
@@ -115,6 +118,7 @@ export default function AppRoutes() {
         <Route path="/dashboard/admin/users" element={<UserManagementPage />} />
         <Route path="/dashboard/admin/equipments" element={<EquipmentManagementPage />} />
         <Route path="/dashboard/admin/bookings" element={<BookingManagementPage />} />
+        <Route path="/dashboard/admin/payments" element={<PaymentsPage />} />
         <Route path="/dashboard/admin/reports" element={<ReportsPage />} />
         </Route>
       </Route>

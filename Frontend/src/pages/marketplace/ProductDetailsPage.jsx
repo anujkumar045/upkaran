@@ -35,6 +35,7 @@ import { toggleWishlist } from '../../store/slices/equipmentSlice';
 import { formatCurrency } from '../../utils/formatters';
 import ProductCard from '../../components/common/ProductCard';
 import axiosClient from '../../api/axiosClient';
+import { writeUserCollection } from '../../utils/userStorage';
 
 const getListingType = (salePrice, rentalPrice) => {
   const hasSalePrice = Number(salePrice || 0) > 0;
@@ -58,7 +59,7 @@ export default function ProductDetailsPage() {
   const dispatch = useDispatch();
 
   const { wishlist } = useSelector((state) => state.equipment);
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
   const [equipment, setEquipment] = useState(null);
   const [selectedImg, setSelectedImg] = useState('');
   const [zoomOpen, setZoomOpen] = useState(false);
@@ -121,7 +122,7 @@ export default function ProductDetailsPage() {
       navigate('/register', { state: { from: `/marketplace/${equipment.id}` } });
       return;
     }
-    message.info('Please contact the equipment owner to complete this purchase.');
+    navigate(`/payment/purchase/${equipment.id}`);
   };
 
   return (
@@ -188,7 +189,13 @@ export default function ProductDetailsPage() {
                 shape="circle"
                 size="large"
                 icon={isWishlisted ? <HeartFilled style={{ color: '#EF4444' }} /> : <HeartOutlined />}
-                onClick={() => dispatch(toggleWishlist(equipment.id))}
+                onClick={() => {
+                  const nextWishlist = wishlist.includes(equipment.id)
+                    ? wishlist.filter((wishlistId) => wishlistId !== equipment.id)
+                    : [...wishlist, equipment.id];
+                  dispatch(toggleWishlist(equipment.id));
+                  writeUserCollection('wishlist', user?.id, nextWishlist);
+                }}
               />
             </div>
 
@@ -226,15 +233,18 @@ export default function ProductDetailsPage() {
               </Button>
             </div>
 
-            <Space direction="vertical" size={12} style={{ width: '100%', gap: 12 }}>
+            <Space
+              wrap
+              size={12}
+              style={{ width: '100%', display: 'flex', gap: 12 }}
+            >
               {canRent && (
                 <Button
                   type="primary"
                   size="large"
-                  block
                   icon={<ThunderboltOutlined />}
                   onClick={handleBooking}
-                  style={{ background: '#2E7D32', height: 54, fontSize: 18, fontWeight: 700, borderRadius: 14 }}
+                  style={{ flex: '1 1 220px', background: '#2E7D32', height: 54, fontSize: 18, fontWeight: 700, borderRadius: 14 }}
                 >
                   Book Equipment Now
                 </Button>
@@ -243,9 +253,8 @@ export default function ProductDetailsPage() {
                 <Button
                   type="primary"
                   size="large"
-                  block
                   onClick={handlePurchase}
-                  style={{ background: '#d97706', borderColor: '#d97706', height: 54, fontSize: 18, fontWeight: 700, borderRadius: 14 }}
+                  style={{ flex: '1 1 220px', background: '#d97706', borderColor: '#d97706', height: 54, fontSize: 18, fontWeight: 700, borderRadius: 14 }}
                 >
                   Buy Equipment Now
                 </Button>

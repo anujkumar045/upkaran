@@ -38,7 +38,7 @@ const equipmentSlice = createSlice({
       state.sortBy = action.payload;
     },
     toggleWishlist: (state, action) => {
-      const eqId = action.payload;
+      const eqId = action.payload.id ?? action.payload;
       if (state.wishlist.includes(eqId)) {
         state.wishlist = state.wishlist.filter(id => id !== eqId);
       } else {
@@ -50,6 +50,12 @@ const equipmentSlice = createSlice({
     },
     setEquipments: (state, action) => {
       state.equipments = action.payload;
+    },
+    setWishlist: (state, action) => {
+      state.wishlist = action.payload;
+    },
+    clearWishlist: (state) => {
+      state.wishlist = [];
     },
     setSelectedEquipment: (state, action) => {
       state.selectedEquipment = action.payload;
@@ -68,7 +74,9 @@ export const {
   toggleWishlist,
   addEquipment,
   setEquipments,
-  setSelectedEquipment
+  setSelectedEquipment,
+  setWishlist,
+  clearWishlist
 } = equipmentSlice.actions;
 
 export default equipmentSlice.reducer;

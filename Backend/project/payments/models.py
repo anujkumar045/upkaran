@@ -15,7 +15,23 @@ class Payment(models.Model):
     booking = models.OneToOneField(
         "bookings.Booking",
         on_delete=models.CASCADE,
-        related_name="payment"
+        related_name="payment",
+        blank=True,
+        null=True
+    )
+
+    equipment = models.ForeignKey(
+        "marketplace.Equipment",
+        on_delete=models.SET_NULL,
+        related_name="payments",
+        blank=True,
+        null=True
+    )
+
+    payment_type = models.CharField(
+        max_length=20,
+        choices=[("rental", "Rental"), ("purchase", "Purchase")],
+        default="rental"
     )
 
     user = models.ForeignKey(
@@ -32,6 +48,17 @@ class Payment(models.Model):
     razorpay_order_id = models.CharField(
         max_length=100,
         unique=True
+    )
+
+    razorpay_qr_id = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True
+    )
+
+    razorpay_qr_image_url = models.URLField(
+        blank=True,
+        null=True
     )
 
     razorpay_payment_id = models.CharField(
@@ -66,4 +93,5 @@ class Payment(models.Model):
     )
 
     def __str__(self):
-        return f"Payment #{self.id} - Booking #{self.booking.id}"
+        reference = self.booking_id or self.equipment_id
+        return f"Payment #{self.id} - Reference #{reference}"

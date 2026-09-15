@@ -22,11 +22,14 @@ import {
   ShoppingOutlined,
   TeamOutlined,
   MenuOutlined,
+  MoreOutlined,
   SafetyCertificateOutlined,
   SwapOutlined,
   ShoppingCartOutlined
 } from '@ant-design/icons';
 import { setUserRole, logout } from '../../store/slices/authSlice';
+import { clearWishlist } from '../../store/slices/equipmentSlice';
+import { clearCart } from '../../store/slices/cartSlice';
 import { markAsRead } from '../../store/slices/notificationSlice';
 
 const API_ORIGIN = (
@@ -131,6 +134,8 @@ export default function Navbar() {
       danger: true,
       onClick: () => {
         dispatch(logout());
+        dispatch(clearWishlist());
+        dispatch(clearCart());
         navigate('/login');
       },
     },
@@ -167,7 +172,7 @@ export default function Navbar() {
           }}>
             🌾
           </div>
-          <div>
+          <div className="navbar-brand-copy">
             <span style={{ fontSize: 24, fontWeight: 800, color: '#2E7D32', letterSpacing: '-0.5px' }} className="brand-font">
               UPKARAN
             </span>
@@ -179,7 +184,7 @@ export default function Navbar() {
       </div>
 
       {/* Navigation Links */}
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 24 }} className="desktop-only">
+      <nav style={{ display: 'flex', alignItems: 'center', gap: 24 }} className="desktop-only navbar-links">
         <Link to="/" style={{ color: location.pathname === '/' ? '#2E7D32' : '#334155', fontWeight: 600, fontSize: 15, textDecoration: 'none' }}>
           Home
         </Link>
@@ -195,25 +200,9 @@ export default function Navbar() {
       </nav>
 
       {/* Right Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        {/* Role Switcher Pill */}
-        <Dropdown menu={{ items: roleMenu }} trigger={['click']} placement="bottomRight">
-          <Button style={{
-            borderRadius: 20,
-            background: '#e8f5e9',
-            borderColor: '#a5d6a7',
-            color: '#2E7D32',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6
-          }}>
-            <SwapOutlined /> Role: <span style={{ textTransform: 'capitalize' }}>{role}</span>
-          </Button>
-        </Dropdown>
-
+      <div className="navbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         {/* Wishlist Icon */}
-        <Link to="/dashboard/farmer/wishlist">
+        <Link to="/dashboard/farmer/wishlist" className="navbar-wishlist">
           <Badge count={wishlist.length} size="small" offset={[-2, 4]} color="#FFC107">
             <Button shape="circle" icon={<HeartOutlined style={{ fontSize: 18, color: '#334155' }} />} />
           </Badge>
@@ -227,7 +216,7 @@ export default function Navbar() {
         </Link>
 
         {/* Notifications Bell */}
-        <Popover content={notificationContent} trigger="click" placement="bottomRight">
+        <Popover content={notificationContent} trigger="click" placement="bottomRight" className="navbar-notifications">
           <Badge count={unreadCount} size="small" offset={[-2, 4]} color="#2E7D32">
             <Button shape="circle" icon={<BellOutlined style={{ fontSize: 18, color: '#334155' }} />} />
           </Badge>
@@ -236,7 +225,7 @@ export default function Navbar() {
         {/* User Profile Avatar */}
         {user ? (
           <Dropdown menu={{ items: roleMenu }} trigger={['click']}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+            <div className="navbar-user" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
               <Avatar src={getProfilePictureUrl(user.profile_picture || user.avatar)} icon={<UserOutlined />} size={40} style={{ border: '2px solid #4CAF50' }} />
               <div style={{ lineHeight: 1.2 }} className="desktop-only">
                 <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a' }}>{[user.first_name, user.last_name].filter(Boolean).join(' ') || user.name || user.username}</div>
@@ -245,7 +234,7 @@ export default function Navbar() {
             </div>
           </Dropdown>
         ) : (
-          <Space>
+          <Space className="navbar-auth">
             <Button type="default" onClick={() => navigate('/login')}>Sign In</Button>
             <Button type="primary" onClick={() => navigate('/register')}>Register</Button>
           </Space>
@@ -254,7 +243,7 @@ export default function Navbar() {
         {/* Mobile Menu Button */}
         <Button
           type="text"
-          icon={<MenuOutlined style={{ fontSize: 20 }} />}
+          icon={<MoreOutlined style={{ fontSize: 22 }} />}
           onClick={() => setMobileMenuOpen(true)}
           style={{ display: 'none' }}
           className="mobile-toggle"
@@ -269,13 +258,38 @@ export default function Navbar() {
         open={mobileMenuOpen}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <Link to="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>
+          <Link
+            to="/"
+            onClick={() => setMobileMenuOpen(false)}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#2E7D32', fontWeight: 800, textDecoration: 'none' }}
+          >
+            <span style={{ fontSize: 24 }}>🌾</span>
+            <span className="brand-font">UPKARAN Home</span>
+          </Link>
           <Link to="/marketplace" onClick={() => setMobileMenuOpen(false)}>Marketplace</Link>
           <Link to="/community" onClick={() => setMobileMenuOpen(false)}>Community</Link>
+          <Link to="/cart" onClick={() => setMobileMenuOpen(false)}>Cart ({cartItems.length})</Link>
+          <Link to="/notifications" onClick={() => setMobileMenuOpen(false)}>Notifications</Link>
+          <Dropdown menu={{ items: roleMenu }} trigger={['click']} placement="bottomLeft">
+            <Button icon={<SwapOutlined />} block>
+              Switch Role: <span style={{ textTransform: 'capitalize' }}>{role || 'farmer'}</span>
+            </Button>
+          </Dropdown>
           <Link to="/dashboard/farmer" onClick={() => setMobileMenuOpen(false)}>Farmer Dashboard</Link>
           <Link to="/dashboard/owner" onClick={() => setMobileMenuOpen(false)}>Owner Portal</Link>
           <Link to="/dashboard/manufacturer" onClick={() => setMobileMenuOpen(false)}>Manufacturer Portal</Link>
           <Link to="/dashboard/admin" onClick={() => setMobileMenuOpen(false)}>Admin Panel</Link>
+          {user ? (
+            <>
+              <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>Profile</Link>
+              <Button onClick={() => { dispatch(logout()); setMobileMenuOpen(false); navigate('/login'); }}>Sign Out</Button>
+            </>
+          ) : (
+            <>
+              <Button onClick={() => { setMobileMenuOpen(false); navigate('/login'); }}>Sign In</Button>
+              <Button type="primary" onClick={() => { setMobileMenuOpen(false); navigate('/register'); }}>Register</Button>
+            </>
+          )}
         </div>
       </Drawer>
     </header>
