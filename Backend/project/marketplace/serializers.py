@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.db.models import Avg
 
-from .models import Category, Equipment, Wishlist
+from .models import Category, Equipment, EquipmentImage, Wishlist
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -22,6 +22,17 @@ class EquipmentSerializer(serializers.ModelSerializer):
     )
     category_label = serializers.CharField(write_only=True, required=False)
     average_rating = serializers.SerializerMethodField()
+    images = serializers.SerializerMethodField()
+    additional_images = serializers.ListField(
+        child=serializers.ImageField(),
+        write_only=True,
+        required=False,
+    )
+
+    def validate_video(self, value):
+        if value and not (value.content_type or "").startswith("video/"):
+            raise serializers.ValidationError("Upload a valid video file.")
+        return value
 
     class Meta:
         model = Equipment
@@ -42,6 +53,9 @@ class EquipmentSerializer(serializers.ModelSerializer):
             "location",
             "image",
             "image_url",
+            "images",
+            "additional_images",
+            "video",
             "quantity",
             "is_available",
             "average_rating",
@@ -54,7 +68,26 @@ class EquipmentSerializer(serializers.ModelSerializer):
             Avg("rating")
         )["rating__avg"]
 
-        return round(average, 1) if average else 0
+        return round(average, 1) if average is not None else 4.5
+
+    def get_images(self, obj):
+        image_files = []
+        if obj.image:
+            image_files.append(obj.image)
+        if obj.image_url:
+            image_files.append(obj.image_url)
+        image_files.extend(
+            photo.image for photo in obj.additional_images.all()
+        )
+
+        request = self.context.get("request")
+        image_urls = []
+        for image in image_files:
+            url = image if isinstance(image, str) else image.url
+            if request and not url.startswith(("http://", "https://")):
+                url = request.build_absolute_uri(url)
+            image_urls.append(url)
+        return image_urls
 
     def get_owner_name(self, obj):
         if obj.owner.role == "dealer":
@@ -66,17 +99,28 @@ class EquipmentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         category_label = validated_data.pop("category_label", None)
+        additional_images = validated_data.pop("additional_images", [])
         if category_label and not validated_data.get("category"):
             category, _ = Category.objects.get_or_create(name=category_label)
             validated_data["category"] = category
-        return super().create(validated_data)
+        if additional_images and not validated_data.get("image"):
+            validated_data["image"] = additional_images.pop(0)
+
+        equipment = super().create(validated_data)
+        for image in additional_images:
+            EquipmentImage.objects.create(equipment=equipment, image=image)
+        return equipment
 
     def update(self, instance, validated_data):
         category_label = validated_data.pop("category_label", None)
+        additional_images = validated_data.pop("additional_images", [])
         if category_label:
             category, _ = Category.objects.get_or_create(name=category_label)
             validated_data["category"] = category
-        return super().update(instance, validated_data)
+        equipment = super().update(instance, validated_data)
+        for image in additional_images:
+            EquipmentImage.objects.create(equipment=equipment, image=image)
+        return equipment
 
 
 class WishlistSerializer(serializers.ModelSerializer):

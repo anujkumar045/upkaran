@@ -47,7 +47,22 @@ class Payment(models.Model):
 
     razorpay_order_id = models.CharField(
         max_length=100,
-        unique=True
+        unique=True,
+        blank=True,
+        null=True
+    )
+
+    payment_reference = models.CharField(
+        max_length=100,
+        unique=True,
+        blank=True,
+        null=True
+    )
+
+    payment_proof = models.ImageField(
+        upload_to="payments/proofs/",
+        blank=True,
+        null=True
     )
 
     razorpay_qr_id = models.CharField(

@@ -49,6 +49,8 @@ class Equipment(models.Model):
 
     image_url = models.URLField(max_length=500, blank=True, null=True)
 
+    video = models.FileField(upload_to="equipment_videos/", blank=True, null=True)
+
     quantity = models.PositiveIntegerField(default=1)
 
     is_available = models.BooleanField(default=True)
@@ -59,6 +61,18 @@ class Equipment(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class EquipmentImage(models.Model):
+    equipment = models.ForeignKey(
+        Equipment,
+        on_delete=models.CASCADE,
+        related_name="additional_images",
+    )
+    image = models.ImageField(upload_to="equipments/")
+
+    class Meta:
+        ordering = ["id"]
 
 
 class Wishlist(models.Model):

@@ -66,7 +66,10 @@ class EquipmentViewSet(viewsets.ModelViewSet):
         instance.delete()
 
     def get_queryset(self):
-        queryset = Equipment.objects.select_related("category", "owner").all()
+        queryset = Equipment.objects.select_related(
+            "category",
+            "owner",
+        ).prefetch_related("additional_images")
 
         if self.request.query_params.get("mine") == "true":
             if not self.request.user.is_authenticated:

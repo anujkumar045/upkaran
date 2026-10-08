@@ -26,7 +26,11 @@ const normalizeEquipment = (equipment) => ({
   category: equipment.category_name || equipment.category || 'Agricultural Equipment',
   condition: equipment.condition || 'Available',
   location: equipment.location || 'Location not specified',
-  images: [absoluteUrl(equipment.image || equipment.image_url)].filter(Boolean),
+  images: (Array.isArray(equipment.images) && equipment.images.length
+    ? equipment.images
+    : [equipment.image || equipment.image_url].filter(Boolean)
+  ).map(absoluteUrl).filter(Boolean),
+  videoUrl: absoluteUrl(equipment.video),
   specs: equipment.specs || {},
   dailyRate: Number(equipment.dailyRate ?? equipment.rental_price ?? 0),
   purchasePrice: Number(equipment.purchasePrice ?? equipment.price ?? 0),

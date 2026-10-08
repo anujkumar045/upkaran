@@ -36,6 +36,15 @@ const getMediaUrl = (value, apiOrigin) => {
   return value.startsWith('http') ? value : `${apiOrigin}/${value.replace(/^\//, '')}`;
 };
 
+const getEquipmentImages = (item, apiOrigin) => {
+  const images = Array.isArray(item.images) && item.images.length
+    ? item.images
+    : [item.image_url || item.image].filter(Boolean);
+  return images.length
+    ? images.map((image) => getMediaUrl(image, apiOrigin))
+    : [getMediaUrl('', apiOrigin)];
+};
+
 const getListingType = (salePrice, rentalPrice) => {
   const hasSalePrice = Number(salePrice || 0) > 0;
   const hasRentalPrice = Number(rentalPrice || 0) > 0;
@@ -80,7 +89,8 @@ export default function MarketplacePage() {
           purchasePrice: Number(item.price ?? item.purchase_price ?? 0),
           rating: Number(item.average_rating || 0),
           reviewCount: 0,
-          images: [getMediaUrl(item.image_url || item.image, apiOrigin)],
+          images: getEquipmentImages(item, apiOrigin),
+          videoUrl: item.video ? getMediaUrl(item.video, apiOrigin) : '',
           specs: { Quantity: `${item.quantity} units`, Brand: item.brand },
           owner: {
             name: item.owner_name || item.owner || 'Marketplace Seller',

@@ -6,10 +6,24 @@ from .models import Payment
 class PaymentSerializer(serializers.ModelSerializer):
 
     buyer_name = serializers.SerializerMethodField()
-    buyer_email = serializers.CharField(source="user.email", read_only=True)
-    buyer_phone = serializers.CharField(source="user.phone", read_only=True)
-    buyer_role = serializers.CharField(source="user.role", read_only=True)
-    equipment_name = serializers.CharField(source="equipment.name", read_only=True)
+    buyer_email = serializers.CharField(
+        source="user.email",
+        read_only=True
+    )
+    buyer_phone = serializers.CharField(
+        source="user.phone",
+        read_only=True
+    )
+    buyer_role = serializers.CharField(
+        source="user.role",
+        read_only=True
+    )
+
+    equipment_name = serializers.CharField(
+        source="equipment.name",
+        read_only=True
+    )
+
     seller_name = serializers.SerializerMethodField()
     seller_email = serializers.SerializerMethodField()
     seller_role = serializers.SerializerMethodField()
@@ -20,16 +34,30 @@ class PaymentSerializer(serializers.ModelSerializer):
     def get_seller_name(self, obj):
         if not obj.equipment:
             return "-"
+
         owner = obj.equipment.owner
-        if owner.role == "dealer" and hasattr(owner, "dealer_profile"):
+
+        if owner.role == "dealer" and hasattr(
+            owner,
+            "dealer_profile"
+        ):
             return owner.dealer_profile.shop_name
+
         return owner.get_full_name() or owner.username
 
     def get_seller_email(self, obj):
-        return obj.equipment.owner.email if obj.equipment else "-"
+        return (
+            obj.equipment.owner.email
+            if obj.equipment
+            else "-"
+        )
 
     def get_seller_role(self, obj):
-        return obj.equipment.owner.role if obj.equipment else "-"
+        return (
+            obj.equipment.owner.role
+            if obj.equipment
+            else "-"
+        )
 
     class Meta:
         model = Payment
@@ -50,6 +78,8 @@ class PaymentSerializer(serializers.ModelSerializer):
             "seller_role",
             "amount",
             "razorpay_order_id",
+            "payment_reference",
+            "payment_proof",
             "razorpay_qr_id",
             "razorpay_qr_image_url",
             "razorpay_payment_id",
@@ -67,6 +97,8 @@ class PaymentSerializer(serializers.ModelSerializer):
             "payment_type",
             "amount",
             "razorpay_order_id",
+            "payment_reference",
+            "payment_proof",
             "razorpay_qr_id",
             "razorpay_qr_image_url",
             "razorpay_payment_id",

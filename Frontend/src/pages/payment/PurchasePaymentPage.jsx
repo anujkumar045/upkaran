@@ -1,31 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { Button, Card, Result, Spin, message } from 'antd';
+import React, { useState } from 'react';
+import { Button, Card, Result, Spin, Upload, message } from 'antd';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import axiosClient from '../../api/axiosClient';
 import { formatCurrency } from '../../utils/formatters';
-
-const RAZORPAY_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
+import { UploadOutlined } from '@ant-design/icons';
 
 export default function PurchasePaymentPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const equipment = useSelector((state) => state.equipment.equipments.find(
     (item) => String(item.id) === String(id)
   ));
   const [loading, setLoading] = useState(false);
   const [completed, setCompleted] = useState(false);
-
-  useEffect(() => {
-    if (!equipment || !equipment.purchasePrice) return undefined;
-
-    const script = document.createElement('script');
-    script.src = RAZORPAY_SCRIPT;
-    script.async = true;
-    document.body.appendChild(script);
-    return () => document.body.removeChild(script);
-  }, [equipment]);
+  const [paymentProof, setPaymentProof] = useState(null);
 
   if (!isAuthenticated) {
     return <Navigate to="/register" replace state={{ from: `/payment/purchase/${id}` }} />;
@@ -43,40 +33,18 @@ export default function PurchasePaymentPage() {
         equipment: equipment.id,
       });
 
-      if (!window.Razorpay) {
-        throw new Error('Payment gateway is still loading. Please try again.');
+      if (!paymentProof) {
+        message.error('Please upload your payment proof first.');
+        setLoading(false);
+        return;
       }
-
-      const razorpay = new window.Razorpay({
-        key: data.key_id,
-        amount: data.amount,
-        currency: data.currency,
-        name: 'UPKARAN',
-        description: equipment.name,
-        order_id: data.razorpay_order_id,
-        prefill: {
-          name: [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.username,
-          email: user?.email,
-          contact: user?.phone,
-        },
-        handler: async (response) => {
-          try {
-            await axiosClient.post('/payments/payments/verify/', {
-              payment_id: data.payment_id,
-              ...response,
-            });
-            setCompleted(true);
-          } catch (error) {
-            message.error(error.response?.data?.error || 'Payment verification failed.');
-          }
-        },
-        modal: {
-          ondismiss: () => setLoading(false),
-        },
-        theme: { color: '#2E7D32' },
+      const formData = new FormData();
+      formData.append('payment_id', data.payment_id);
+      formData.append('payment_proof', paymentProof);
+      await axiosClient.post('/payments/payments/verify/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-
-      razorpay.open();
+      setCompleted(true);
     } catch (error) {
       message.error(error.response?.data?.error || error.message || 'Unable to start payment.');
       setLoading(false);
@@ -90,7 +58,7 @@ export default function PurchasePaymentPage() {
           <Result
             status="success"
             title="Payment Successful"
-            subTitle={`${equipment.name} purchase payment was received by UPKARAN.`}
+            subTitle={`${equipment.name} payment proof was submitted and is awaiting admin verification.`}
             extra={<Button type="primary" onClick={() => navigate('/marketplace')}>Return to Marketplace</Button>}
           />
         </Card>
@@ -108,9 +76,17 @@ export default function PurchasePaymentPage() {
         <h1 className="brand-font">Complete Purchase</h1>
         <p style={{ color: '#64748b' }}>{equipment.name}</p>
         <p style={{ fontSize: 28, fontWeight: 800, color: '#2E7D32' }}>{formatCurrency(equipment.purchasePrice)}</p>
-        <p style={{ color: '#64748b' }}>Payment will be securely collected into the UPKARAN admin Razorpay account.</p>
-        <Button type="primary" size="large" block loading={loading} onClick={handlePayment}>
-          Pay Securely with Razorpay
+        <p style={{ color: '#64748b' }}>Pay using your preferred UPI app, then upload the payment screenshot for admin verification.</p>
+        <Upload
+          accept="image/*"
+          maxCount={1}
+          beforeUpload={(file) => { setPaymentProof(file); return false; }}
+          onRemove={() => setPaymentProof(null)}
+        >
+          <Button block icon={<UploadOutlined />}>Upload Payment Screenshot</Button>
+        </Upload>
+        <Button type="primary" size="large" block loading={loading} disabled={!paymentProof} onClick={handlePayment} style={{ marginTop: 12 }}>
+          Submit Payment for Verification
         </Button>
       </Card>
     </div>

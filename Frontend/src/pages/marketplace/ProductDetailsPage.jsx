@@ -53,6 +53,15 @@ const getMediaUrl = (value, apiOrigin) => {
   return value.startsWith('http') ? value : `${apiOrigin}/${value.replace(/^\//, '')}`;
 };
 
+const getEquipmentImages = (item, apiOrigin) => {
+  const images = Array.isArray(item.images) && item.images.length
+    ? item.images
+    : [item.image_url || item.image].filter(Boolean);
+  return images.length
+    ? images.map((image) => getMediaUrl(image, apiOrigin))
+    : [getMediaUrl('', apiOrigin)];
+};
+
 export default function ProductDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -84,7 +93,8 @@ export default function ProductDetailsPage() {
         purchasePrice: Number(item.price || 0),
         rating: Number(item.average_rating || 0),
         reviewCount: 0,
-        images: [getMediaUrl(item.image_url || item.image, apiOrigin)],
+        images: getEquipmentImages(item, apiOrigin),
+        videoUrl: item.video ? getMediaUrl(item.video, apiOrigin) : '',
         specs: { Quantity: `${item.quantity} units`, Brand: item.brand },
         description: item.description,
         owner: {
@@ -144,26 +154,55 @@ export default function ProductDetailsPage() {
             </div>
 
             {/* Thumbnail Selectors */}
-            <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 6 }}>
+            <div
+              aria-label={`Scroll through ${equipment.images.length} equipment photos`}
+              style={{
+                display: 'flex',
+                gap: 12,
+                overflowX: 'auto',
+                paddingBottom: 6,
+                scrollSnapType: 'x mandatory',
+              }}
+            >
               {equipment.images.map((imgUrl, idx) => (
-                <div
+                <button
                   key={idx}
+                  type="button"
                   onClick={() => setSelectedImg(imgUrl)}
+                  aria-label={`View equipment photo ${idx + 1}`}
                   style={{
                     width: 90,
                     height: 70,
                     borderRadius: 12,
                     overflow: 'hidden',
                     cursor: 'pointer',
+                    padding: 0,
+                    background: 'transparent',
                     border: selectedImg === imgUrl ? '3px solid #2E7D32' : '1px solid #cbd5e1',
                     opacity: selectedImg === imgUrl ? 1 : 0.7,
                     transition: 'all 0.2s'
                   }}
                 >
                   <img src={imgUrl} alt="thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
+                </button>
               ))}
             </div>
+            {equipment.videoUrl && (
+              <video
+                controls
+                preload="metadata"
+                src={equipment.videoUrl}
+                aria-label={`${equipment.name} equipment video`}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  maxHeight: 400,
+                  marginTop: 16,
+                  borderRadius: 16,
+                  background: '#0f172a',
+                }}
+              />
+            )}
           </Col>
 
           {/* Right Column: Information & Actions */}
